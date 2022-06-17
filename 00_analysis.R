@@ -9,7 +9,7 @@ library(Rdiagnosislist)
 library(tidyverse)
 
 # READ2 maps ----
-## These are from here: https://isd.digital.nhs.uk/trud/users/authenticated/filters/0/categories/9/items/9/releases
+## These are from here: https://isd.digital.nhs.uk/trud/users/guest/filters/0/categories/9/items/9/releases
 readmaps = loadREADMAPS(
   "/home/common/snomed/nhs_datamigration_29.0.0_20200401000001/Mapping Tables/Updated/Not Clinically Assured/rcsctmap_uk_20200401000001.txt",
   "/home/common/snomed/nhs_datamigration_29.0.0_20200401000001/Mapping Tables/Updated/Not Clinically Assured/rctermsctmap_uk_20200401000001.txt",
