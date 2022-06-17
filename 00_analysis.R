@@ -66,12 +66,12 @@ snomed = snomed %>%
 
 makeMaps <- function(.path_in, .path_out, .snomed, .remove_dot = TRUE){
   files_in = list.files(.path_in, full.names = TRUE)
-  file_names = list.files(.path_in) %>% 
+  files_out = list.files(.path_in) %>% 
     stringr::str_remove("\\..+") %>% 
     paste0(.path_out, "/", ., ".csv")
   
   files_in %>% 
-    purrr::map2(file_names, ~ readxl::read_excel(.x) %>% 
+    purrr::map2(files_out, ~ readxl::read_excel(.x) %>% 
                   rename("icd10_code" = 1, "icd10_description" = 2) %>% {
                     if(.remove_dot){
                       mutate(., icd10_code = str_remove(icd10_code, "\\."))
