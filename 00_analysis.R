@@ -17,14 +17,26 @@ readmaps = loadREADMAPS(
 ) 
 
 # SNOMED lookup for read2 and ICD10 ----
-## Environment, created using loadSNOMED()
+## Environment, created using Rdiagnosislist::loadSNOMED()
 ## Follow instructions in package
 ## Reload the 'SNOMED' environment from file
 SNOMED <- readRDS('/home/common/snomed/mySNOMED_int20200731_uk20201125.RDS')
 
 # Extract the whole caboodle - this is the master lookup
-snomed = SNOMEDconcept('', SNOMED = SNOMED, exact_match = FALSE) %>% 
-  getMaps(to = c("read2", "icd10"), mappingtable = readmaps) 
+## Comment in below if want to include other lookups
+include_ctv_opcs4 = FALSE
+# include_ctv_opcs4 = TRUE
+
+if(include_ctv_opcs4){
+  snomed = SNOMEDconcept('', SNOMED = SNOMED, exact_match = FALSE) %>% 
+    getMaps(to = c("read2", "icd10", 
+                   "ctv3", "ctv3simple", "opcs4"
+    ), mappingtable = readmaps) 
+} else {
+  snomed = SNOMEDconcept('', SNOMED = SNOMED, exact_match = FALSE) %>% 
+    getMaps(to = c("read2", "icd10"
+    ), mappingtable = readmaps) 
+}
 
 # This is needed as data.table int64 format doesn't work well in tibble
 ## I know, just do it all in data.table. No thank you. 
@@ -34,9 +46,17 @@ snomed = snomed[, conceptId:=as.character(conceptId)]
 snomed = snomed %>% 
   as_tibble() %>% 
   unnest(icd10_code, keep_empty = TRUE) %>% 
-  unnest(c(read2_code, "read2_term"), keep_empty = TRUE) %>% 
-  finalfit::rm_empty_block(read2_code, icd10_code) # Remove rows with neither read2 or icd10
-# rows = 185,677
+  unnest(c(read2_code, read2_term), keep_empty = TRUE) %>% {
+    if(include_ctv_opcs4){
+      unnest(., c(opcs4_code), keep_empty = TRUE) %>% 
+        unnest(c(ctv3_concept, ctv3_termid), keep_empty = TRUE) %>% 
+        finalfit::rm_empty_block(read2_code, icd10_code, opcs4_code, ctv3_concept) # Remove rows with no lookup
+    } else {
+      finalfit::rm_empty_block(., read2_code, icd10_code) # Remove rows with no lookup
+    }
+  }
+# rows = 185,677 if read2, icd10 only
+# rows = 1,382,854 if includes ctv3 and opcs4
 
 # makeMaps function ----
 ## This takes a folder of .xlsx files
