@@ -64,7 +64,13 @@ snomed = snomed %>%
 ## They were formatted with a decimal dot, e.g. E66.5, which is removed
 ## Output is mapped .csv files to new folder. 
 
-makeMaps <- function(.path_in, .path_out, .snomed, .remove_dot = TRUE){
+makeMaps <- function(.path_in, .path_out, .snomed, .remove_dot = TRUE, .overwrite = FALSE){
+  if (!dir.exists(.path_out)) {
+    message("Out folder cannot be found and will be created.")
+    dir.create(file.path(.path_out))
+  } else if(dir.exists(.path_out) & length(list.files(.path_out)) != 0 & !.overwrite){
+    stop("Out folder is not empty, set .overwrite = TRUE or create new folder")
+  }
   files_in = list.files(.path_in, full.names = TRUE)
   files_out = list.files(.path_in) %>% 
     stringr::str_remove("\\..+") %>% 
@@ -86,4 +92,4 @@ makeMaps <- function(.path_in, .path_out, .snomed, .remove_dot = TRUE){
   
 }
 
-makeMaps("data_in", "data_out", snomed)
+makeMaps("data_in_220630", "data_out_220630", snomed, .overwrite = TRUE)
